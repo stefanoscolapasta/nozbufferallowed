@@ -1,32 +1,46 @@
-## Blog Post Title From First Header
+# Exploring Wave Intrinsics
 
-Due to a plugin called `jekyll-titles-from-headings` which is supported by GitHub Pages by default. The above header (in the markdown file) will be automatically used as the pages title.
+## (This blog post is an experimental entry).
 
-If the file does not start with a header, then the post title will be derived from the filename.
-
-This is a sample blog post. You can talk about all sorts of fun things here.
+Wave intrinsics are a powerful set of HLSL functions that enable direct communication between threads within a wave - the fundamental execution unit in modern GPU architectures. Unlike traditional GPU programming where threads operate in isolation, wave intrinsics let you leverage the fact that groups of threads (typically 32-64) execute in lockstep, opening up new possibilities for optimization and algorithm design.
 
 ---
 
-### This is a header
+### What is a Wave?
 
-#### Some T-SQL Code
+A wave (also called a warp in NVIDIA terminology or wavefront in AMD terminology) is a collection of threads that execute simultaneously on a GPU's SIMD (Single Instruction, Multiple Data) units. Wave intrinsics expose this hardware-level parallelism directly to shader code, allowing threads to share data and coordinate without expensive memory operations.
 
-```tsql
-SELECT This, [Is], A, Code, Block -- Using SSMS style syntax highlighting
-    , REVERSE('abc')
-FROM dbo.SomeTable s
-    CROSS JOIN dbo.OtherTable o;
+#### Basic Wave Operations
+```hlsl
+// Get the size of the current wave (typically 32 or 64)
+uint waveSize = WaveGetLaneCount();
+
+// Get this thread's index within the wave
+uint laneIndex = WaveGetLaneIndex();
+
+// Check if all threads in the wave meet a condition
+bool allThreadsReady = WaveActiveAllTrue(isReady);
+
+// Sum values across all lanes in the wave
+float waveSum = WaveActiveSum(localValue);
 ```
 
-#### Some PowerShell Code
+#### A Practical Example: Fast Reduction
+```hlsl
+// Traditional approach: write to shared memory, synchronize, read back
+// Wave intrinsic approach: direct thread communication, no memory needed
 
-```powershell
-Write-Host "This is a powershell Code block";
-
-# There are many other languages you can use, but the style has to be loaded first
-
-ForEach ($thing in $things) {
-    Write-Output "It highlights it using the GitHub style"
+float ComputeBlockAverage(float threadValue)
+{
+    // Sum across all threads in the wave
+    float waveSum = WaveActiveSum(threadValue);
+    
+    // Get the count of active lanes
+    uint activeCount = WaveActiveCountBits(true);
+    
+    // First lane returns the average
+    return waveSum / (float)activeCount;
 }
 ```
+
+Wave intrinsics shine in scenarios like parallel reductions, prefix sums, ballot operations, and any algorithm where neighboring threads need to share data quickly. They're particularly valuable in compute shaders for optimizing algorithms that would otherwise require shared memory and barriers.

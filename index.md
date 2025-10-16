@@ -1,5 +1,5 @@
-Here you can say lots of fun things about your site.
+# nozbufferallowed  
+*A rendering log by Stefano Scolari*  
 
-Maybe say a some things about yourself.
-
-Or maybe what you plan to blog about.
+Welcome to **nozbufferallowed** - a small, quiet space for thoughts on rendering, gpu programming, and generally on whatever concerns GFX.  
+It’s a place for experiments, notes, and the occasional dives into random stuff I find interesting.
